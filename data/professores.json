@@ -1,0 +1,122 @@
+[
+  {
+    "REGIONAL": "Região Norte",
+    "Cadastro": "12345",
+    "Nome": "Maria Silva Santos",
+    "Admissao": "01/03/2018",
+    "CPF": "123.456.789-00",
+    "Cargo": "Professor",
+    "Local": "Sede Principal",
+    "ESCOLA": "41137329- ANITA CANET, C E-EF M P",
+    "Horas Mes": "160",
+    "Horas Semana": "40"
+  },
+  {
+    "REGIONAL": "Região Sul",
+    "Cadastro": "12346",
+    "Nome": "João Pedro Oliveira",
+    "Admissao": "15/06/2019",
+    "CPF": "234.567.890-11",
+    "Cargo": "Professor",
+    "Local": "Unidade A",
+    "ESCOLA": "41133188- SANTO AGOSTINHO, C E-EF M",
+    "Horas Mes": "120",
+    "Horas Semana": "30"
+  },
+  {
+    "REGIONAL": "Região Leste",
+    "Cadastro": "12347",
+    "Nome": "Ana Carolina Ferreira",
+    "Admissao": "10/02/2020",
+    "CPF": "345.678.901-22",
+    "Cargo": "Professor",
+    "Local": "Unidade B",
+    "ESCOLA": "41129970- IVO LEAO, C E-EF M",
+    "Horas Mes": "160",
+    "Horas Semana": "40"
+  },
+  {
+    "REGIONAL": "Região Oeste",
+    "Cadastro": "12348",
+    "Nome": "Carlos Eduardo Lima",
+    "Admissao": "05/08/2017",
+    "CPF": "456.789.012-33",
+    "Cargo": "Professor",
+    "Local": "Sede Regional",
+    "ESCOLA": "41130138- JOAO DE OLIVEIRA FRANCO, C E-E",
+    "Horas Mes": "160",
+    "Horas Semana": "40"
+  },
+  {
+    "REGIONAL": "Região Central",
+    "Cadastro": "12349",
+    "Nome": "Beatriz Almeida Costa",
+    "Admissao": "20/01/2021",
+    "CPF": "567.890.123-44",
+    "Cargo": "Professor",
+    "Local": "Unidade C",
+    "ESCOLA": "41130162- JOAO MAZZAROTTO, C E-EF M",
+    "Horas Mes": "120",
+    "Horas Semana": "30"
+  },
+  {
+    "REGIONAL": "Região Norte",
+    "Cadastro": "12350",
+    "Nome": "Ricardo Henrique Souza",
+    "Admissao": "12/09/2019",
+    "CPF": "678.901.234-55",
+    "Cargo": "Professor",
+    "Local": "Unidade D",
+    "ESCOLA": "41134516- DECIO DOSSI, C E DR-EF M PROFI",
+    "Horas Mes": "160",
+    "Horas Semana": "40"
+  },
+  {
+    "REGIONAL": "Região Sul",
+    "Cadastro": "12351",
+    "Nome": "Fernanda Rodrigues Martins",
+    "Admissao": "03/04/2018",
+    "CPF": "789.012.345-66",
+    "Cargo": "Professor",
+    "Local": "Sede Principal",
+    "ESCOLA": "41129920- ISABEL L S SOUZA, C E PROFA-EF",
+    "Horas Mes": "160",
+    "Horas Semana": "40"
+  },
+  {
+    "REGIONAL": "Região Leste",
+    "Cadastro": "12352",
+    "Nome": "Paulo Cesar Barbosa",
+    "Admissao": "25/11/2020",
+    "CPF": "890.123.456-77",
+    "Cargo": "Professor",
+    "Local": "Unidade E",
+    "ESCOLA": "41100719- LIANE MARTA DA COSTA, C E-EF M",
+    "Horas Mes": "120",
+    "Horas Semana": "30"
+  },
+  {
+    "REGIONAL": "Região Oeste",
+    "Cadastro": "12353",
+    "Nome": "Juliana Santos Pereira",
+    "Admissao": "08/07/2019",
+    "CPF": "901.234.567-88",
+    "Cargo": "Professor",
+    "Local": "Unidade F",
+    "ESCOLA": "41099591- ANTONIO TUPY PINHEIRO, C E-EF M",
+    "Horas Mes": "160",
+    "Horas Semana": "40"
+  },
+  {
+    "REGIONAL": "Região Central",
+    "Cadastro": "12354",
+    "Nome": "Marcos Vinicius Rocha",
+    "Admissao": "14/05/2021",
+    "CPF": "012.345.678-99",
+    "Cargo": "Professor",
+    "Local": "Sede Regional",
+    "ESCOLA": "41100379- FRANCISCO C MARTINS, C E-M P",
+    "Horas Mes": "160",
+    "Horas Semana": "40"
+  }
+]
