@@ -204,7 +204,7 @@ export default function FormPage() {
       // ✅ Insert público: não enviar user_id
       const { error: supabaseError } = await supabase
         .from('feedback_professores')
-        .insert([{ ...feedbackData }]);
+        .insert([{user_id: '123456', ...feedbackData }]);
 
       if (supabaseError) throw supabaseError;
 
