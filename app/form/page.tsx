@@ -211,7 +211,7 @@ export default function FormPage() {
       // ✅ Google Sheets sem autenticação do usuário (use identificador genérico)
       try {
         await sendToGoogleSheets({
-          user_id: null,
+          user_id: 'Anônimo',
           user_name: 'Anônimo',
           ...feedbackData,
         });
