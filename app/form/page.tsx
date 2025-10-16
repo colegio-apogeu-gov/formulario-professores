@@ -1,12 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
 import { supabase } from '@/lib/supabase';
 import { sendToGoogleSheets } from '@/lib/sheets-client';
-import { Professor, FeedbackFormData, RATING_DESCRIPTIONS } from '@/types'; // ⛔️ REMOVIDO UNIDADES
+import { Professor, FeedbackFormData, RATING_DESCRIPTIONS } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,14 +12,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RatingScale } from '@/components/RatingScale';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, LogOut, User } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 // Tipagem da linha que vem do Supabase (colunas originais)
 type RawProfessor = {
   REGIONAL: string;
   Cadastro: string;
   Nome: string;
-  Admissão: string | null; // vem com acento do banco
+  Admissão: string | null;
   CPF: string;
   Cargo: string;
   Local: string;
@@ -36,8 +33,10 @@ const escapeILike = (s: string) =>
   s.replace(/[%_]/g, (m) => `\\${m}`).replace(/\s+/g, ' ').trim();
 
 export default function FormPage() {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  // 🔻 REMOVIDO: controle de usuário/autenticação
+  // const [user, setUser] = useState<any>(null);
+  // const [loading, setLoading] = useState(true);
+
   const [submitting, setSubmitting] = useState(false);
 
   // Unidades vindas do banco
@@ -58,25 +57,13 @@ export default function FormPage() {
     consideracoes: '',
   });
 
-  const router = useRouter();
   const { toast } = useToast();
 
-  // ======== AUTH ========
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (!currentUser) {
-        router.push('/login');
-      } else {
-        setUser(currentUser);
-        setLoading(false);
-      }
-    });
-    return () => unsubscribe();
-  }, [router]);
+  // 🔻 REMOVIDO: efeito de auth/redirect
+  // useEffect(() => { ... }, []);
 
   // ======== CARREGAR UNIDADES (valores reais de ESCOLA) ========
   useEffect(() => {
-    if (!user) return;
     (async () => {
       try {
         setLoadingUnidades(true);
@@ -100,7 +87,7 @@ export default function FormPage() {
         setLoadingUnidades(false);
       }
     })();
-  }, [user, toast]);
+  }, [toast]);
 
   // ======== BUSCAR PROFESSORES POR UNIDADE ========
   const fetchProfessoresByUnidade = async (unidade: string) => {
@@ -162,20 +149,13 @@ export default function FormPage() {
     if (unidade) fetchProfessoresByUnidade(unidade);
   };
 
-const handleProfessorChange = (cadastro: string) => {
-  const professor = professores.find((p) => p.Cadastro === cadastro);
-  setSelectedProfessor(professor || null);
-};
-
-
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      router.push('/login');
-    } catch {
-      toast({ title: 'Erro ao fazer logout', variant: 'destructive' });
-    }
+  const handleProfessorChange = (cadastro: string) => {
+    const professor = professores.find((p) => p.Cadastro === cadastro);
+    setSelectedProfessor(professor || null);
   };
+
+  // 🔻 REMOVIDO: logout
+  // const handleLogout = async () => { ... }
 
   // ======== SUBMIT ========
   const handleSubmit = async (e: React.FormEvent) => {
@@ -190,12 +170,7 @@ const handleProfessorChange = (cadastro: string) => {
       return;
     }
 
-    if (
-      !formData.planejamento ||
-      !formData.didatica ||
-      !formData.comunicacao ||
-      !formData.postura
-    ) {
+    if (!formData.planejamento || !formData.didatica || !formData.comunicacao || !formData.postura) {
       toast({
         title: 'Campos obrigatórios',
         description: 'Por favor, preencha todas as avaliações.',
@@ -226,18 +201,18 @@ const handleProfessorChange = (cadastro: string) => {
         consideracoes: formData.consideracoes || '',
       };
 
+      // ✅ Insert público: não enviar user_id
       const { error: supabaseError } = await supabase
         .from('feedback_professores')
-        .insert([{ user_id: user.uid, ...feedbackData }]);
+        .insert([{ ...feedbackData }]);
 
       if (supabaseError) throw supabaseError;
 
-      // Google Sheets (ideal fazer server-side; mantido conforme seu fluxo)
+      // ✅ Google Sheets sem autenticação do usuário (use identificador genérico)
       try {
         await sendToGoogleSheets({
-          user_id: user.uid,
-          user_name: user.displayName || user.email || 'Usuário',
-          //user_name: 'form-apggov@form-apggov-475117.iam.gserviceaccount.com',
+          user_id: null,
+          user_name: 'Anônimo',
           ...feedbackData,
         });
       } catch (sheetsError) {
@@ -271,13 +246,8 @@ const handleProfessorChange = (cadastro: string) => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-      </div>
-    );
-  }
+  // 🔻 REMOVIDO: tela de loading por causa de auth
+  // if (loading) { ... }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
@@ -287,16 +257,9 @@ const handleProfessorChange = (cadastro: string) => {
             <h1 className="text-2xl font-bold text-gray-900">Rede APOGEU</h1>
             <p className="text-sm text-gray-600">Avaliação Docente</p>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-sm text-gray-700">
-              <User className="w-4 h-4" />
-              <span>{user?.displayName || user?.email}</span>
-            </div>
-            <Button variant="outline" size="sm" onClick={handleLogout}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Sair
-            </Button>
-          </div>
+
+          {/* 🔻 REMOVIDO: bloco de usuário e botão Sair */}
+          {/* <div className="flex items-center gap-4"> ... </div> */}
         </div>
       </header>
 
@@ -331,30 +294,28 @@ const handleProfessorChange = (cadastro: string) => {
               {/* PROFESSOR */}
               <div className="space-y-2">
                 <Label htmlFor="professor">Selecione o Professor *</Label>
-<Select
-  value={selectedProfessor?.Cadastro || ''}        // ← antes era Nome
-  onValueChange={handleProfessorChange}
-  disabled={!selectedUnidade || loadingProfessores}
->
-  <SelectTrigger id="professor">
-    <SelectValue placeholder={loadingProfessores ? 'Carregando...' : 'Escolha um professor'} />
-  </SelectTrigger>
-  <SelectContent>
-    {professores.map((professor) => (
-      <SelectItem
-        key={professor.Cadastro}                  // chave única
-        value={professor.Cadastro}                // ← usar Cadastro como value
-      >
-        {/* Mostre algo que diferencie duplicados */}
-        {professor.Nome} — {professor.Cargo} ({professor.Cadastro})
-      </SelectItem>
-    ))}
-    {!loadingProfessores && professores.length === 0 && (
-      <div className="px-3 py-2 text-sm text-gray-500">Nenhum professor para esta unidade.</div>
-    )}
-  </SelectContent>
-</Select>
-
+                <Select
+                  value={selectedProfessor?.Cadastro || ''}
+                  onValueChange={handleProfessorChange}
+                  disabled={!selectedUnidade || loadingProfessores}
+                >
+                  <SelectTrigger id="professor">
+                    <SelectValue placeholder={loadingProfessores ? 'Carregando...' : 'Escolha um professor'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {professores.map((professor) => (
+                      <SelectItem
+                        key={professor.Cadastro}
+                        value={professor.Cadastro}
+                      >
+                        {professor.Nome} — {professor.Cargo} ({professor.Cadastro})
+                      </SelectItem>
+                    ))}
+                    {!loadingProfessores && professores.length === 0 && (
+                      <div className="px-3 py-2 text-sm text-gray-500">Nenhum professor para esta unidade.</div>
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* DADOS DO PROFESSOR */}
