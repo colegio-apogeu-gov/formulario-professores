@@ -50,10 +50,13 @@ export default function FormPage() {
 
   const [selectedProfessor, setSelectedProfessor] = useState<Professor | null>(null);
   const [formData, setFormData] = useState<Partial<FeedbackFormData>>({
-    planejamento: undefined,
-    didatica: undefined,
-    comunicacao: undefined,
-    postura: undefined,
+    observacoes_sala_aula: undefined,
+    feedback_evolucao: undefined,
+    planejamento_org: undefined,
+    dominio_conteudo: undefined,
+    gestao_aprendizagem: undefined,
+    comunicacao_rel: undefined,
+    postura_prof: undefined,
     consideracoes: '',
   });
 
@@ -170,7 +173,8 @@ export default function FormPage() {
       return;
     }
 
-    if (!formData.planejamento || !formData.didatica || !formData.comunicacao || !formData.postura) {
+    if (!formData.observacoes_sala_aula || !formData.feedback_evolucao || !formData.planejamento_org ||
+        !formData.dominio_conteudo || !formData.gestao_aprendizagem || !formData.comunicacao_rel || !formData.postura_prof) {
       toast({
         title: 'Campos obrigatórios',
         description: 'Por favor, preencha todas as avaliações.',
@@ -194,10 +198,13 @@ export default function FormPage() {
         escola: selectedProfessor.ESCOLA,
         horas_mes: selectedProfessor['Horas Mes'],
         horas_semana: selectedProfessor['Horas Semana'],
-        planejamento: formData.planejamento!,
-        didatica: formData.didatica!,
-        comunicacao: formData.comunicacao!,
-        postura: formData.postura!,
+        observacoes_sala_aula: formData.observacoes_sala_aula!,
+        feedback_evolucao: formData.feedback_evolucao!,
+        planejamento_org: formData.planejamento_org!,
+        dominio_conteudo: formData.dominio_conteudo!,
+        gestao_aprendizagem: formData.gestao_aprendizagem!,
+        comunicacao_rel: formData.comunicacao_rel!,
+        postura_prof: formData.postura_prof!,
         consideracoes: formData.consideracoes || '',
       };
 
@@ -229,10 +236,13 @@ export default function FormPage() {
       setSelectedProfessor(null);
       setProfessores([]);
       setFormData({
-        planejamento: undefined,
-        didatica: undefined,
-        comunicacao: undefined,
-        postura: undefined,
+        observacoes_sala_aula: undefined,
+        feedback_evolucao: undefined,
+        planejamento_org: undefined,
+        dominio_conteudo: undefined,
+        gestao_aprendizagem: undefined,
+        comunicacao_rel: undefined,
+        postura_prof: undefined,
         consideracoes: '',
       });
     } catch (error: any) {
@@ -372,36 +382,60 @@ export default function FormPage() {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <RatingScale
-                    title={RATING_DESCRIPTIONS.planejamento.title}
-                    question={RATING_DESCRIPTIONS.planejamento.question}
-                    options={RATING_DESCRIPTIONS.planejamento.options}
-                    value={formData.planejamento || null}
-                    onChange={(value) => setFormData({ ...formData, planejamento: value })}
-                    name="planejamento"
+                    title={RATING_DESCRIPTIONS.observacoes_sala_aula.title}
+                    question={RATING_DESCRIPTIONS.observacoes_sala_aula.question}
+                    options={RATING_DESCRIPTIONS.observacoes_sala_aula.options}
+                    value={formData.observacoes_sala_aula || null}
+                    onChange={(value) => setFormData({ ...formData, observacoes_sala_aula: value })}
+                    name="observacoes_sala_aula"
                   />
                   <RatingScale
-                    title={RATING_DESCRIPTIONS.didatica.title}
-                    question={RATING_DESCRIPTIONS.didatica.question}
-                    options={RATING_DESCRIPTIONS.didatica.options}
-                    value={formData.didatica || null}
-                    onChange={(value) => setFormData({ ...formData, didatica: value })}
-                    name="didatica"
+                    title={RATING_DESCRIPTIONS.feedback_evolucao.title}
+                    question={RATING_DESCRIPTIONS.feedback_evolucao.question}
+                    options={RATING_DESCRIPTIONS.feedback_evolucao.options}
+                    value={formData.feedback_evolucao || null}
+                    onChange={(value) => setFormData({ ...formData, feedback_evolucao: value })}
+                    name="feedback_evolucao"
                   />
                   <RatingScale
-                    title={RATING_DESCRIPTIONS.comunicacao.title}
-                    question={RATING_DESCRIPTIONS.comunicacao.question}
-                    options={RATING_DESCRIPTIONS.comunicacao.options}
-                    value={formData.comunicacao || null}
-                    onChange={(value) => setFormData({ ...formData, comunicacao: value })}
-                    name="comunicacao"
+                    title={RATING_DESCRIPTIONS.planejamento_org.title}
+                    question={RATING_DESCRIPTIONS.planejamento_org.question}
+                    options={RATING_DESCRIPTIONS.planejamento_org.options}
+                    value={formData.planejamento_org || null}
+                    onChange={(value) => setFormData({ ...formData, planejamento_org: value })}
+                    name="planejamento_org"
                   />
                   <RatingScale
-                    title={RATING_DESCRIPTIONS.postura.title}
-                    question={RATING_DESCRIPTIONS.postura.question}
-                    options={RATING_DESCRIPTIONS.postura.options}
-                    value={formData.postura || null}
-                    onChange={(value) => setFormData({ ...formData, postura: value })}
-                    name="postura"
+                    title={RATING_DESCRIPTIONS.dominio_conteudo.title}
+                    question={RATING_DESCRIPTIONS.dominio_conteudo.question}
+                    options={RATING_DESCRIPTIONS.dominio_conteudo.options}
+                    value={formData.dominio_conteudo || null}
+                    onChange={(value) => setFormData({ ...formData, dominio_conteudo: value })}
+                    name="dominio_conteudo"
+                  />
+                  <RatingScale
+                    title={RATING_DESCRIPTIONS.gestao_aprendizagem.title}
+                    question={RATING_DESCRIPTIONS.gestao_aprendizagem.question}
+                    options={RATING_DESCRIPTIONS.gestao_aprendizagem.options}
+                    value={formData.gestao_aprendizagem || null}
+                    onChange={(value) => setFormData({ ...formData, gestao_aprendizagem: value })}
+                    name="gestao_aprendizagem"
+                  />
+                  <RatingScale
+                    title={RATING_DESCRIPTIONS.comunicacao_rel.title}
+                    question={RATING_DESCRIPTIONS.comunicacao_rel.question}
+                    options={RATING_DESCRIPTIONS.comunicacao_rel.options}
+                    value={formData.comunicacao_rel || null}
+                    onChange={(value) => setFormData({ ...formData, comunicacao_rel: value })}
+                    name="comunicacao_rel"
+                  />
+                  <RatingScale
+                    title={RATING_DESCRIPTIONS.postura_prof.title}
+                    question={RATING_DESCRIPTIONS.postura_prof.question}
+                    options={RATING_DESCRIPTIONS.postura_prof.options}
+                    value={formData.postura_prof || null}
+                    onChange={(value) => setFormData({ ...formData, postura_prof: value })}
+                    name="postura_prof"
                   />
                   <div className="space-y-2">
                     <Label htmlFor="consideracoes">Considerações Finais</Label>

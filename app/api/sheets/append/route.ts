@@ -77,10 +77,13 @@ export async function POST(req: Request) {
       data.escola ?? '',
       data.horas_mes ?? '',
       data.horas_semana ?? '',
-      data.planejamento ?? '',
-      data.didatica ?? '',
-      data.comunicacao ?? '',
-      data.postura ?? '',
+      data.observacoes_sala_aula ?? '',
+      data.feedback_evolucao ?? '',
+      data.planejamento_org ?? '',
+      data.dominio_conteudo ?? '',
+      data.gestao_aprendizagem ?? '',
+      data.comunicacao_rel ?? '',
+      data.postura_prof ?? '',
       data.consideracoes ?? '',
     ]];
 
