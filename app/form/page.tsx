@@ -18,9 +18,9 @@ import { Loader2 } from 'lucide-react';
 // Tipagem da linha que vem do Supabase (colunas originais + novas)
 type RawProfessor = {
   REGIONAL: string;
-  Cadastro: string;
+  Cadastro: string | number;
   Nome: string;
-  Admissão: string | null;
+  'Admissão': string | null; // <— use a chave com acento entre aspas
   CPF: string;
   Cargo: string;
   Local: string;
@@ -28,12 +28,13 @@ type RawProfessor = {
   Horas_Mes: string | number | null;
   Horas_Semana: string | number | null;
 
-  // NOVAS COLUNAS
-  tempo_casa_mes: number | null; // int4
-  total_carga_horaria: number | null; // int8
-  horas_faltas_injustificadas: number | null; // int4
-  porcentagem_horas_faltas_injustificadas: string | null; // string
+  // Novas colunas
+  tempo_casa_mes: number | null;
+  total_carga_horaria: number | null;
+  horas_faltas_injustificadas: number | null;
+  porcentagem_horas_faltas_injustificadas: string | null;
 };
+
 
 // Estende o tipo Professor importado adicionando as 4 novas infos
 type Professor = BaseProfessor & {
@@ -109,72 +110,72 @@ export default function FormPage() {
   }, [toast]);
 
   // ======== BUSCAR PROFESSORES POR UNIDADE ========
-  const fetchProfessoresByUnidade = async (unidade: string) => {
-    setLoadingProfessores(true);
-    setSelectedProfessor(null);
-    try {
-      const alvo = unidade;
+const fetchProfessoresByUnidade = async (unidade: string) => {
+  setLoadingProfessores(true);
+  setSelectedProfessor(null);
+  try {
+    const alvo = unidade;
 
-      // SELECT com as NOVAS colunas
-      const baseSelect =
-        'REGIONAL, Cadastro, Nome, "Admissão", CPF, Cargo, Local, ESCOLA, "Horas_Mes", "Horas_Semana", ' +
-        'tempo_casa_mes, total_carga_horaria, horas_faltas_injustificadas, porcentagem_horas_faltas_injustificadas';
+    const baseSelect =
+      'REGIONAL, Cadastro, Nome, "Admissão", CPF, Cargo, Local, ESCOLA, "Horas_Mes", "Horas_Semana", ' +
+      'tempo_casa_mes, total_carga_horaria, horas_faltas_injustificadas, porcentagem_horas_faltas_injustificadas';
 
-      // 1) match exato
-      let { data, error } = await supabase
+    // 1) match exato (tipando o select)
+    let { data, error } = await supabase
+      .from('dados_professores')
+      .select<RawProfessor>(baseSelect)
+      .eq('ESCOLA', alvo)
+      .order('Nome', { ascending: true });
+
+    if (error) throw error;
+
+    // 2) fallback: ILIKE %alvo% (também tipado)
+    if (!data || data.length === 0) {
+      const pattern = `%${escapeILike(alvo)}%`;
+      const { data: data2, error: error2 } = await supabase
         .from('dados_professores')
-        .select(baseSelect)
-        .eq('ESCOLA', alvo)
+        .select<RawProfessor>(baseSelect)
+        .ilike('ESCOLA', pattern)
         .order('Nome', { ascending: true });
-
-      if (error) throw error;
-
-      // 2) fallback: ILIKE %alvo%
-      if (!data || data.length === 0) {
-        const pattern = `%${escapeILike(alvo)}%`;
-        const { data: data2, error: error2 } = await supabase
-          .from('dados_professores')
-          .select(baseSelect)
-          .ilike('ESCOLA', pattern)
-          .order('Nome', { ascending: true });
-        if (error2) throw error2;
-        data = data2 ?? [];
-      }
-
-      const mapped: Professor[] = (data as RawProfessor[]).map((row) => ({
-        REGIONAL: row.REGIONAL ?? '',
-        Cadastro: String(row.Cadastro ?? ''),
-        Nome: row.Nome ?? '',
-        Admissao: row['Admissão'] ?? '',
-        CPF: row.CPF ?? '',
-        Cargo: row.Cargo ?? '',
-        Local: row.Local ?? '',
-        ESCOLA: row.ESCOLA ?? '',
-        ['Horas Mes']: row.Horas_Mes != null ? String(row.Horas_Mes) : '',
-        ['Horas Semana']: row.Horas_Semana != null ? String(row.Horas_Semana) : '',
-
-        // NOVOS CAMPOS (formatados como string para exibição)
-        tempo_casa_mes: row.tempo_casa_mes != null ? String(row.tempo_casa_mes) : '',
-        total_carga_horaria: row.total_carga_horaria != null ? String(row.total_carga_horaria) : '',
-        horas_faltas_injustificadas:
-          row.horas_faltas_injustificadas != null ? String(row.horas_faltas_injustificadas) : '',
-        porcentagem_horas_faltas_injustificadas:
-          row.porcentagem_horas_faltas_injustificadas ?? '',
-      }));
-
-      setProfessores(mapped);
-    } catch (err: any) {
-      console.error(err);
-      toast({
-        title: 'Erro ao carregar professores',
-        description: err.message || 'Não foi possível buscar os professores da unidade.',
-        variant: 'destructive',
-      });
-      setProfessores([]);
-    } finally {
-      setLoadingProfessores(false);
+      if (error2) throw error2;
+      data = data2 ?? [];
     }
-  };
+
+    const mapped: Professor[] = (data ?? []).map((row) => ({
+      REGIONAL: row.REGIONAL ?? '',
+      Cadastro: String(row.Cadastro ?? ''),
+      Nome: row.Nome ?? '',
+      Admissao: row['Admissão'] ?? '',
+      CPF: row.CPF ?? '',
+      Cargo: row.Cargo ?? '',
+      Local: row.Local ?? '',
+      ESCOLA: row.ESCOLA ?? '',
+      ['Horas Mes']: row.Horas_Mes != null ? String(row.Horas_Mes) : '',
+      ['Horas Semana']: row.Horas_Semana != null ? String(row.Horas_Semana) : '',
+
+      // Novos campos
+      tempo_casa_mes: row.tempo_casa_mes != null ? String(row.tempo_casa_mes) : '',
+      total_carga_horaria: row.total_carga_horaria != null ? String(row.total_carga_horaria) : '',
+      horas_faltas_injustificadas:
+        row.horas_faltas_injustificadas != null ? String(row.horas_faltas_injustificadas) : '',
+      porcentagem_horas_faltas_injustificadas:
+        row.porcentagem_horas_faltas_injustificadas ?? '',
+    }));
+
+    setProfessores(mapped);
+  } catch (err: any) {
+    console.error(err);
+    toast({
+      title: 'Erro ao carregar professores',
+      description: err.message || 'Não foi possível buscar os professores da unidade.',
+      variant: 'destructive',
+    });
+    setProfessores([]);
+  } finally {
+    setLoadingProfessores(false);
+  }
+};
+
 
   const handleUnidadeChange = (unidade: string) => {
     setSelectedUnidade(unidade);
