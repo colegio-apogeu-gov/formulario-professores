@@ -120,28 +120,31 @@ const fetchProfessoresByUnidade = async (unidade: string) => {
       'REGIONAL, Cadastro, Nome, "Admissão", CPF, Cargo, Local, ESCOLA, "Horas_Mes", "Horas_Semana", ' +
       'tempo_casa_mes, total_carga_horaria, horas_faltas_injustificadas, porcentagem_horas_faltas_injustificadas';
 
-    // 1) match exato (tipando o select)
+    // 1) match exato (sem genérico no select)
     let { data, error } = await supabase
       .from('dados_professores')
-      .select<RawProfessor>(baseSelect)
+      .select(baseSelect)
       .eq('ESCOLA', alvo)
       .order('Nome', { ascending: true });
 
     if (error) throw error;
 
-    // 2) fallback: ILIKE %alvo% (também tipado)
+    // 2) fallback: ILIKE %alvo%
     if (!data || data.length === 0) {
       const pattern = `%${escapeILike(alvo)}%`;
       const { data: data2, error: error2 } = await supabase
         .from('dados_professores')
-        .select<RawProfessor>(baseSelect)
+        .select(baseSelect)
         .ilike('ESCOLA', pattern)
         .order('Nome', { ascending: true });
       if (error2) throw error2;
       data = data2 ?? [];
     }
 
-    const mapped: Professor[] = (data ?? []).map((row) => ({
+    // Narrowing + cast seguro via unknown
+    const rows = (Array.isArray(data) ? data : []) as unknown as RawProfessor[];
+
+    const mapped: Professor[] = rows.map((row) => ({
       REGIONAL: row.REGIONAL ?? '',
       Cadastro: String(row.Cadastro ?? ''),
       Nome: row.Nome ?? '',
@@ -175,6 +178,7 @@ const fetchProfessoresByUnidade = async (unidade: string) => {
     setLoadingProfessores(false);
   }
 };
+
 
 
   const handleUnidadeChange = (unidade: string) => {
