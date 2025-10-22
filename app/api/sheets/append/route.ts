@@ -1,3 +1,4 @@
+// /home/project/app/api/sheets/append/route.ts
 export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
@@ -36,7 +37,7 @@ async function getAccessToken() {
   return access_token;
 }
 
-async function appendToSheet(values: (string | number | null)[][], range = 'Respostas!A:Z') {
+async function appendToSheet(values: (string | number | null)[][], range = 'Respostas!A:AF') {
   const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID!;
   if (!spreadsheetId) throw new Error('Missing GOOGLE_SHEETS_SPREADSHEET_ID');
 
@@ -63,9 +64,12 @@ export async function POST(req: Request) {
     const data = await req.json();
 
     const row = [[
+      // Metadados
       new Date().toISOString(),
       data.user_id ?? '',
       data.user_name ?? '',
+
+      // Identificação
       data.unidade ?? '',
       data.nome_professor ?? '',
       data.regional ?? '',
@@ -75,8 +79,18 @@ export async function POST(req: Request) {
       data.cargo ?? '',
       data.local ?? '',
       data.escola ?? '',
+
+      // Carga-horária base
       data.horas_mes ?? '',
       data.horas_semana ?? '',
+
+      // 🆕 Novas colunas (na mesma ordem do formulário)
+      data.tempo_casa_mes ?? '',
+      data.total_carga_horaria ?? '',
+      data.horas_faltas_injustificadas ?? '',
+      data.porcentagem_horas_faltas_injustificadas ?? '',
+
+      // Avaliações
       data.observacoes_sala_aula ?? '',
       data.feedback_evolucao ?? '',
       data.planejamento_org ?? '',
@@ -84,13 +98,23 @@ export async function POST(req: Request) {
       data.gestao_aprendizagem ?? '',
       data.comunicacao_rel ?? '',
       data.postura_prof ?? '',
+
+      // Texto livre
       data.consideracoes ?? '',
     ]];
 
-    await appendToSheet(row, 'Respostas!A:Z');
-    return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    // Range ampliado para garantir espaço (A:AF cobre até 32 colunas)
+    await appendToSheet(row, 'Respostas!A:AF');
+
+    return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
   } catch (e: any) {
     console.error('[Sheets append] error:', e);
-    return new Response(JSON.stringify({ ok: false, error: String(e) }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    return new Response(JSON.stringify({ ok: false, error: String(e) }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 }

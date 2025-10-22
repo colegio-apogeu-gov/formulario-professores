@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { sendToGoogleSheets } from '@/lib/sheets-client';
-import { Professor, FeedbackFormData, RATING_DESCRIPTIONS } from '@/types';
+import { Professor as BaseProfessor, FeedbackFormData as BaseFeedbackFormData, RATING_DESCRIPTIONS } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,7 +14,8 @@ import { RatingScale } from '@/components/RatingScale';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
-// Tipagem da linha que vem do Supabase (colunas originais)
+// ===== Tipagens locais =====
+// Tipagem da linha que vem do Supabase (colunas originais + novas)
 type RawProfessor = {
   REGIONAL: string;
   Cadastro: string;
@@ -26,6 +27,28 @@ type RawProfessor = {
   ESCOLA: string;
   Horas_Mes: string | number | null;
   Horas_Semana: string | number | null;
+
+  // NOVAS COLUNAS
+  tempo_casa_mes: number | null; // int4
+  total_carga_horaria: number | null; // int8
+  horas_faltas_injustificadas: number | null; // int4
+  porcentagem_horas_faltas_injustificadas: string | null; // string
+};
+
+// Estende o tipo Professor importado adicionando as 4 novas infos
+type Professor = BaseProfessor & {
+  tempo_casa_mes?: string;
+  total_carga_horaria?: string;
+  horas_faltas_injustificadas?: string;
+  porcentagem_horas_faltas_injustificadas?: string;
+};
+
+// Extensão mínima para enviarmos os novos campos no submit
+type FeedbackFormData = BaseFeedbackFormData & {
+  tempo_casa_mes?: string;
+  total_carga_horaria?: string;
+  horas_faltas_injustificadas?: string;
+  porcentagem_horas_faltas_injustificadas?: string;
 };
 
 // Utilitário para usar no ILIKE com segurança
@@ -33,10 +56,6 @@ const escapeILike = (s: string) =>
   s.replace(/[%_]/g, (m) => `\\${m}`).replace(/\s+/g, ' ').trim();
 
 export default function FormPage() {
-  // 🔻 REMOVIDO: controle de usuário/autenticação
-  // const [user, setUser] = useState<any>(null);
-  // const [loading, setLoading] = useState(true);
-
   const [submitting, setSubmitting] = useState(false);
 
   // Unidades vindas do banco
@@ -61,9 +80,6 @@ export default function FormPage() {
   });
 
   const { toast } = useToast();
-
-  // 🔻 REMOVIDO: efeito de auth/redirect
-  // useEffect(() => { ... }, []);
 
   // ======== CARREGAR UNIDADES (valores reais de ESCOLA) ========
   useEffect(() => {
@@ -99,10 +115,15 @@ export default function FormPage() {
     try {
       const alvo = unidade;
 
+      // SELECT com as NOVAS colunas
+      const baseSelect =
+        'REGIONAL, Cadastro, Nome, "Admissão", CPF, Cargo, Local, ESCOLA, "Horas_Mes", "Horas_Semana", ' +
+        'tempo_casa_mes, total_carga_horaria, horas_faltas_injustificadas, porcentagem_horas_faltas_injustificadas';
+
       // 1) match exato
       let { data, error } = await supabase
         .from('dados_professores')
-        .select('REGIONAL, Cadastro, Nome, "Admissão", CPF, Cargo, Local, ESCOLA, "Horas_Mes", "Horas_Semana"')
+        .select(baseSelect)
         .eq('ESCOLA', alvo)
         .order('Nome', { ascending: true });
 
@@ -113,7 +134,7 @@ export default function FormPage() {
         const pattern = `%${escapeILike(alvo)}%`;
         const { data: data2, error: error2 } = await supabase
           .from('dados_professores')
-          .select('REGIONAL, Cadastro, Nome, "Admissão", CPF, Cargo, Local, ESCOLA, "Horas_Mes", "Horas_Semana"')
+          .select(baseSelect)
           .ilike('ESCOLA', pattern)
           .order('Nome', { ascending: true });
         if (error2) throw error2;
@@ -131,6 +152,14 @@ export default function FormPage() {
         ESCOLA: row.ESCOLA ?? '',
         ['Horas Mes']: row.Horas_Mes != null ? String(row.Horas_Mes) : '',
         ['Horas Semana']: row.Horas_Semana != null ? String(row.Horas_Semana) : '',
+
+        // NOVOS CAMPOS (formatados como string para exibição)
+        tempo_casa_mes: row.tempo_casa_mes != null ? String(row.tempo_casa_mes) : '',
+        total_carga_horaria: row.total_carga_horaria != null ? String(row.total_carga_horaria) : '',
+        horas_faltas_injustificadas:
+          row.horas_faltas_injustificadas != null ? String(row.horas_faltas_injustificadas) : '',
+        porcentagem_horas_faltas_injustificadas:
+          row.porcentagem_horas_faltas_injustificadas ?? '',
       }));
 
       setProfessores(mapped);
@@ -157,9 +186,6 @@ export default function FormPage() {
     setSelectedProfessor(professor || null);
   };
 
-  // 🔻 REMOVIDO: logout
-  // const handleLogout = async () => { ... }
-
   // ======== SUBMIT ========
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -173,8 +199,15 @@ export default function FormPage() {
       return;
     }
 
-    if (!formData.observacoes_sala_aula || !formData.feedback_evolucao || !formData.planejamento_org ||
-        !formData.dominio_conteudo || !formData.gestao_aprendizagem || !formData.comunicacao_rel || !formData.postura_prof) {
+    if (
+      !formData.observacoes_sala_aula ||
+      !formData.feedback_evolucao ||
+      !formData.planejamento_org ||
+      !formData.dominio_conteudo ||
+      !formData.gestao_aprendizagem ||
+      !formData.comunicacao_rel ||
+      !formData.postura_prof
+    ) {
       toast({
         title: 'Campos obrigatórios',
         description: 'Por favor, preencha todas as avaliações.',
@@ -198,6 +231,14 @@ export default function FormPage() {
         escola: selectedProfessor.ESCOLA,
         horas_mes: selectedProfessor['Horas Mes'],
         horas_semana: selectedProfessor['Horas Semana'],
+
+        // NOVOS CAMPOS no payload
+        tempo_casa_mes: selectedProfessor.tempo_casa_mes ?? '',
+        total_carga_horaria: selectedProfessor.total_carga_horaria ?? '',
+        horas_faltas_injustificadas: selectedProfessor.horas_faltas_injustificadas ?? '',
+        porcentagem_horas_faltas_injustificadas:
+          selectedProfessor.porcentagem_horas_faltas_injustificadas ?? '',
+
         observacoes_sala_aula: formData.observacoes_sala_aula!,
         feedback_evolucao: formData.feedback_evolucao!,
         planejamento_org: formData.planejamento_org!,
@@ -208,14 +249,14 @@ export default function FormPage() {
         consideracoes: formData.consideracoes || '',
       };
 
-      // ✅ Insert público: não enviar user_id
+      // ✅ Insert: inclui também as 4 novas colunas
       const { error: supabaseError } = await supabase
         .from('feedback_professores')
-        .insert([{user_id: '123456', ...feedbackData }]);
+        .insert([{ user_id: '123456', ...feedbackData }]);
 
       if (supabaseError) throw supabaseError;
 
-      // ✅ Google Sheets sem autenticação do usuário (use identificador genérico)
+      // ✅ Google Sheets (se sua planilha tiver colunas novas, elas serão preenchidas)
       try {
         await sendToGoogleSheets({
           user_id: 'Anônimo',
@@ -256,9 +297,6 @@ export default function FormPage() {
     }
   };
 
-  // 🔻 REMOVIDO: tela de loading por causa de auth
-  // if (loading) { ... }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
       <header className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
@@ -267,9 +305,6 @@ export default function FormPage() {
             <h1 className="text-2xl font-bold text-gray-900">Rede APOGEU</h1>
             <p className="text-sm text-gray-600">Avaliação Docente</p>
           </div>
-
-          {/* 🔻 REMOVIDO: bloco de usuário e botão Sair */}
-          {/* <div className="flex items-center gap-4"> ... </div> */}
         </div>
       </header>
 
@@ -314,10 +349,7 @@ export default function FormPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {professores.map((professor) => (
-                      <SelectItem
-                        key={professor.Cadastro}
-                        value={professor.Cadastro}
-                      >
+                      <SelectItem key={professor.Cadastro} value={professor.Cadastro}>
                         {professor.Nome} — {professor.Cargo} ({professor.Cadastro})
                       </SelectItem>
                     ))}
@@ -366,6 +398,24 @@ export default function FormPage() {
                   <div className="space-y-2">
                     <Label>Horas Semana</Label>
                     <Input value={selectedProfessor['Horas Semana']} readOnly />
+                  </div>
+
+                  {/* NOVOS CAMPOS - somente leitura */}
+                  <div className="space-y-2">
+                    <Label>Tempo de Casa (meses)</Label>
+                    <Input value={selectedProfessor.tempo_casa_mes ?? ''} readOnly />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Total Carga Horária</Label>
+                    <Input value={selectedProfessor.total_carga_horaria ?? ''} readOnly />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Horas de Faltas Injustificadas</Label>
+                    <Input value={selectedProfessor.horas_faltas_injustificadas ?? ''} readOnly />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>% Horas Faltas Injustificadas</Label>
+                    <Input value={selectedProfessor.porcentagem_horas_faltas_injustificadas ?? ''} readOnly />
                   </div>
                 </div>
               )}
