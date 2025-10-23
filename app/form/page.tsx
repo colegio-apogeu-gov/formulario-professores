@@ -254,7 +254,7 @@ const fetchProfessoresByUnidade = async (unidade: string) => {
         comunicacao_rel: formData.comunicacao_rel!,
         postura_prof: formData.postura_prof!,
         consideracoes: formData.consideracoes || '',
-        feedback: formmData.feedback!,
+        feedback: formData.feedback!,
       };
 
       // ✅ Insert: inclui também as 4 novas colunas
