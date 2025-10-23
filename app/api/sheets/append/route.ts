@@ -91,13 +91,14 @@ export async function POST(req: Request) {
       data.porcentagem_horas_faltas_injustificadas ?? '',
 
       // Avaliações
+      data.postura_prof ?? '',
       data.observacoes_sala_aula ?? '',
+      data.feedback ?? '',
       data.feedback_evolucao ?? '',
       data.planejamento_org ?? '',
       data.dominio_conteudo ?? '',
       data.gestao_aprendizagem ?? '',
       data.comunicacao_rel ?? '',
-      data.postura_prof ?? '',
 
       // Texto livre
       data.consideracoes ?? '',

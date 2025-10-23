@@ -46,6 +46,7 @@ export interface FeedbackFormData {
   comunicacao_rel: number;
   postura_prof: number;
   consideracoes: string;
+  feedback: number;
 }
 
 export interface FeedbackRecord extends FeedbackFormData {
@@ -102,16 +103,29 @@ export const RATING_DESCRIPTIONS = {
       { value: 5, label: 'Mais de cinco vezes', description: 'Mais de cinco vezes.' },
     ],
   },
-  feedback_evolucao: {
-    title: 'Feedback e Evolução',
+  feedback: {
+    title: 'Feedback',
     question:
-      'Após as observações em sala de aula, foram oferecidos feedbacks estruturados ao(a) professor(a) e qual evolução foi percebida em sua prática.',
+      'Como o(a) professor(a) recebe os feedbacks pedagógicos oferecidos pela direção após as observações?',
     options: [
-      { value: 1, label: 'Sem feedback ou evolução', description: 'Não houve feedback ou não foi possível observar evolução.' },
-      { value: 2, label: 'Evolução mínima', description: 'Houve feedbacks pontuais ou genéricos, com evolução mínima.' },
-      { value: 3, label: 'Evolução moderada', description: 'Houve feedbacks informais, com evolução moderada observada.' },
-      { value: 4, label: 'Evolução significativa', description: 'Foram oferecidos feedbacks estruturados, com evolução significativa nas práticas pedagógicas.' },
-      { value: 5, label: 'Evolução expressiva e sustentável', description: 'Foram oferecidos feedbacks estruturados e contínuos, com evolução expressiva e sustentável na prática docente.' },
+      { value: 0, label: 'N/A (Não se aplica)', description: 'Caso não tenha havido feedback.' },
+      { value: 1, label: 'Insatisfatório', description: 'É reativo(a) ou indiferente. Ignora os feedbacks oferecidos ou reage de forma negativa/hostil, não reconhecendo a necessidade de ajustes em sua prática.' },
+      { value: 2, label: 'Pouco Satisfatório', description: 'Demonstra alguma resistência. Tende a se justificar excessivamente ou ficar na defensiva diante de apontamentos de melhoria, dificultando um diálogo produtivo.' },
+      { value: 3, label: 'Regular', description: 'Recebe o feedback de forma passiva. Escuta as orientações, mas interage pouco durante a devolutiva, sem demonstrar grande interesse ou questionamento sobre como melhorar.' },
+      { value: 4, label: 'Satisfatório', description: 'É receptivo(a) e profissional. Escuta os feedbacks estruturados com atenção, dialoga de forma construtiva sobre os pontos levantados e demonstra intenção clara de aplicá-los.' },
+      { value: 5, label: 'Muito Satisfatório', description: 'É proativo(a) e valoriza o feedback. Não apenas recebe bem as orientações, como busca ativamente a opinião da gestão para melhorar sua prática. Encara as críticas como oportunidades de crescimento.' },
+    ],
+  },
+  feedback_evolucao: {
+    title: 'Evolução da Prática Pedagógica',
+    question:
+      'O(A) professor(a) demonstra uma trajetória de desenvolvimento, buscando aprimorar e refinar sua prática pedagógica?',
+    options: [
+      { value: 1, label: 'Insatisfatório', description: 'Não apresenta qualquer sinal de evolução. Há uma acomodação ou até mesmo uma regressão na qualidade de sua prática, com desinteresse visível em se desenvolver profissionalmente.' },
+      { value: 2, label: 'Pouco Satisfatório', description: 'Demonstra pouca ou nenhuma evolução. Sua prática pedagógica permanece estagnada, repetindo os mesmos métodos e abordagens sem sinais visíveis de aprimoramento ou reflexão.' },
+      { value: 3, label: 'Regular', description: 'Apresenta uma evolução discreta ou pontual. Há pequenas melhorias em aspectos isolados, mas a prática geral se mantém majoritariamente a mesma, com pouca busca por aprimoramento.' },
+      { value: 4, label: 'Satisfatório', description: 'Demonstra uma evolução clara e consistente. É visível o aprimoramento de suas competências e a incorporação de novas abordagens em sua prática ao longo do período avaliativo.' },
+      { value: 5, label: 'Muito Satisfatório', description: 'Demonstra uma evolução expressiva e autônoma. Busca ativamente novas metodologias, reflete sobre sua prática e inova constantemente em sala de aula. Seu desenvolvimento é notável e serve de inspiração para a equipe.' },
     ],
   },
   planejamento_org: {

@@ -71,6 +71,7 @@ export default function FormPage() {
   const [selectedProfessor, setSelectedProfessor] = useState<Professor | null>(null);
   const [formData, setFormData] = useState<Partial<FeedbackFormData>>({
     observacoes_sala_aula: undefined,
+    feedback: undefined,
     feedback_evolucao: undefined,
     planejamento_org: undefined,
     dominio_conteudo: undefined,
@@ -206,6 +207,7 @@ const fetchProfessoresByUnidade = async (unidade: string) => {
 
     if (
       !formData.observacoes_sala_aula ||
+      !formData.feedback ||
       !formData.feedback_evolucao ||
       !formData.planejamento_org ||
       !formData.dominio_conteudo ||
@@ -252,9 +254,11 @@ const fetchProfessoresByUnidade = async (unidade: string) => {
         comunicacao_rel: formData.comunicacao_rel!,
         postura_prof: formData.postura_prof!,
         consideracoes: formData.consideracoes || '',
+        feedback: formmData.feedback!,
       };
 
       // ✅ Insert: inclui também as 4 novas colunas
+      console.log(feedbackData)
       const { error: supabaseError } = await supabase
         .from('feedback_professores')
         .insert([{ user_id: '123456', ...feedbackData }]);
@@ -283,6 +287,7 @@ const fetchProfessoresByUnidade = async (unidade: string) => {
       setProfessores([]);
       setFormData({
         observacoes_sala_aula: undefined,
+        feedback: undefined,
         feedback_evolucao: undefined,
         planejamento_org: undefined,
         dominio_conteudo: undefined,
@@ -437,12 +442,28 @@ const fetchProfessoresByUnidade = async (unidade: string) => {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <RatingScale
+                    title={RATING_DESCRIPTIONS.postura_prof.title}
+                    question={RATING_DESCRIPTIONS.postura_prof.question}
+                    options={RATING_DESCRIPTIONS.postura_prof.options}
+                    value={formData.postura_prof || null}
+                    onChange={(value) => setFormData({ ...formData, postura_prof: value })}
+                    name="postura_prof"
+                  />
+                  <RatingScale
                     title={RATING_DESCRIPTIONS.observacoes_sala_aula.title}
                     question={RATING_DESCRIPTIONS.observacoes_sala_aula.question}
                     options={RATING_DESCRIPTIONS.observacoes_sala_aula.options}
                     value={formData.observacoes_sala_aula || null}
                     onChange={(value) => setFormData({ ...formData, observacoes_sala_aula: value })}
                     name="observacoes_sala_aula"
+                  />
+                  <RatingScale
+                    title={RATING_DESCRIPTIONS.feedback.title}
+                    question={RATING_DESCRIPTIONS.feedback.question}
+                    options={RATING_DESCRIPTIONS.feedback.options}
+                    value={formData.feedback || null}
+                    onChange={(value) => setFormData({ ...formData, feedback: value })}
+                    name="feedback"
                   />
                   <RatingScale
                     title={RATING_DESCRIPTIONS.feedback_evolucao.title}
@@ -483,14 +504,6 @@ const fetchProfessoresByUnidade = async (unidade: string) => {
                     value={formData.comunicacao_rel || null}
                     onChange={(value) => setFormData({ ...formData, comunicacao_rel: value })}
                     name="comunicacao_rel"
-                  />
-                  <RatingScale
-                    title={RATING_DESCRIPTIONS.postura_prof.title}
-                    question={RATING_DESCRIPTIONS.postura_prof.question}
-                    options={RATING_DESCRIPTIONS.postura_prof.options}
-                    value={formData.postura_prof || null}
-                    onChange={(value) => setFormData({ ...formData, postura_prof: value })}
-                    name="postura_prof"
                   />
                   <div className="space-y-2">
                     <Label htmlFor="consideracoes">Considerações Finais</Label>
