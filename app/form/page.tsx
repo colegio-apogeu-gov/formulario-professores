@@ -207,7 +207,7 @@ const fetchProfessoresByUnidade = async (unidade: string) => {
 
     if (
       !formData.observacoes_sala_aula ||
-      !formData.feedback ||
+      !formData.feedback === undefined ||
       !formData.feedback_evolucao ||
       !formData.planejamento_org ||
       !formData.dominio_conteudo ||
@@ -414,6 +414,11 @@ const fetchProfessoresByUnidade = async (unidade: string) => {
                   <div className="space-y-2">
                     <Label>Tempo de Casa (meses)</Label>
                     <Input value={selectedProfessor.tempo_casa_mes ?? ''} readOnly />
+                    {selectedProfessor.tempo_casa_mes === '0' && (
+                      <div className="text-sm text-gray-500 mt-2">
+                        Nos casos em que o tempo de casa é zerado e a carga horária é negativa, significa que o professor foi admitido no mês de outubro.
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label>Total Carga Horária</Label>
