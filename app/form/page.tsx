@@ -12,15 +12,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RatingScale } from '@/components/RatingScale';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, CheckCircle2 } from 'lucide-react'; // ⭐ novo ícone
 
 // ===== Tipagens locais =====
-// Tipagem da linha que vem do Supabase (colunas originais + novas)
 type RawProfessor = {
   REGIONAL: string;
   Cadastro: string | number;
   Nome: string;
-  'Admissão': string | null; // <— use a chave com acento entre aspas
+  'Admissão': string | null;
   CPF: string;
   Cargo: string;
   Local: string;
@@ -35,8 +34,6 @@ type RawProfessor = {
   porcentagem_horas_faltas_injustificadas: string | null;
 };
 
-
-// Estende o tipo Professor importado adicionando as 4 novas infos
 type Professor = BaseProfessor & {
   tempo_casa_mes?: string;
   total_carga_horaria?: string;
@@ -44,7 +41,6 @@ type Professor = BaseProfessor & {
   porcentagem_horas_faltas_injustificadas?: string;
 };
 
-// Extensão mínima para enviarmos os novos campos no submit
 type FeedbackFormData = BaseFeedbackFormData & {
   tempo_casa_mes?: string;
   total_carga_horaria?: string;
@@ -52,12 +48,14 @@ type FeedbackFormData = BaseFeedbackFormData & {
   porcentagem_horas_faltas_injustificadas?: string;
 };
 
-// Utilitário para usar no ILIKE com segurança
 const escapeILike = (s: string) =>
   s.replace(/[%_]/g, (m) => `\\${m}`).replace(/\s+/g, ' ').trim();
 
 export default function FormPage() {
   const [submitting, setSubmitting] = useState(false);
+
+  // ⭐ estado do validador visual de sucesso
+  const [submitted, setSubmitted] = useState(false);
 
   // Unidades vindas do banco
   const [unidades, setUnidades] = useState<string[]>([]);
@@ -83,7 +81,7 @@ export default function FormPage() {
 
   const { toast } = useToast();
 
-  // ======== CARREGAR UNIDADES (valores reais de ESCOLA) ========
+  // ======== CARREGAR UNIDADES ========
   useEffect(() => {
     (async () => {
       try {
@@ -111,76 +109,71 @@ export default function FormPage() {
   }, [toast]);
 
   // ======== BUSCAR PROFESSORES POR UNIDADE ========
-const fetchProfessoresByUnidade = async (unidade: string) => {
-  setLoadingProfessores(true);
-  setSelectedProfessor(null);
-  try {
-    const alvo = unidade;
+  const fetchProfessoresByUnidade = async (unidade: string) => {
+    setLoadingProfessores(true);
+    setSelectedProfessor(null);
+    try {
+      const alvo = unidade;
 
-    const baseSelect =
-      'REGIONAL, Cadastro, Nome, "Admissão", CPF, Cargo, Local, ESCOLA, "Horas_Mes", "Horas_Semana", ' +
-      'tempo_casa_mes, total_carga_horaria, horas_faltas_injustificadas, porcentagem_horas_faltas_injustificadas';
+      const baseSelect =
+        'REGIONAL, Cadastro, Nome, "Admissão", CPF, Cargo, Local, ESCOLA, "Horas_Mes", "Horas_Semana", ' +
+        'tempo_casa_mes, total_carga_horaria, horas_faltas_injustificadas, porcentagem_horas_faltas_injustificadas';
 
-    // 1) match exato (sem genérico no select)
-    let { data, error } = await supabase
-      .from('dados_professores')
-      .select(baseSelect)
-      .eq('ESCOLA', alvo)
-      .order('Nome', { ascending: true });
-
-    if (error) throw error;
-
-    // 2) fallback: ILIKE %alvo%
-    if (!data || data.length === 0) {
-      const pattern = `%${escapeILike(alvo)}%`;
-      const { data: data2, error: error2 } = await supabase
+      let { data, error } = await supabase
         .from('dados_professores')
         .select(baseSelect)
-        .ilike('ESCOLA', pattern)
+        .eq('ESCOLA', alvo)
         .order('Nome', { ascending: true });
-      if (error2) throw error2;
-      data = data2 ?? [];
+
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        const pattern = `%${escapeILike(alvo)}%`;
+        const { data: data2, error: error2 } = await supabase
+          .from('dados_professores')
+          .select(baseSelect)
+          .ilike('ESCOLA', pattern)
+          .order('Nome', { ascending: true });
+        if (error2) throw error2;
+        data = data2 ?? [];
+      }
+
+      const rows = (Array.isArray(data) ? data : []) as unknown as RawProfessor[];
+
+      const mapped: Professor[] = rows.map((row) => ({
+        REGIONAL: row.REGIONAL ?? '',
+        Cadastro: String(row.Cadastro ?? ''),
+        Nome: row.Nome ?? '',
+        Admissao: row['Admissão'] ?? '',
+        CPF: row.CPF ?? '',
+        Cargo: row.Cargo ?? '',
+        Local: row.Local ?? '',
+        ESCOLA: row.ESCOLA ?? '',
+        ['Horas Mes']: row.Horas_Mes != null ? String(row.Horas_Mes) : '',
+        ['Horas Semana']: row.Horas_Semana != null ? String(row.Horas_Semana) : '',
+
+        // Novos campos
+        tempo_casa_mes: row.tempo_casa_mes != null ? String(row.tempo_casa_mes) : '',
+        total_carga_horaria: row.total_carga_horaria != null ? String(row.total_carga_horaria) : '',
+        horas_faltas_injustificadas:
+          row.horas_faltas_injustificadas != null ? String(row.horas_faltas_injustificadas) : '',
+        porcentagem_horas_faltas_injustificadas:
+          row.porcentagem_horas_faltas_injustificadas ?? '',
+      }));
+
+      setProfessores(mapped);
+    } catch (err: any) {
+      console.error(err);
+      toast({
+        title: 'Erro ao carregar professores',
+        description: err.message || 'Não foi possível buscar os professores da unidade.',
+        variant: 'destructive',
+      });
+      setProfessores([]);
+    } finally {
+      setLoadingProfessores(false);
     }
-
-    // Narrowing + cast seguro via unknown
-    const rows = (Array.isArray(data) ? data : []) as unknown as RawProfessor[];
-
-    const mapped: Professor[] = rows.map((row) => ({
-      REGIONAL: row.REGIONAL ?? '',
-      Cadastro: String(row.Cadastro ?? ''),
-      Nome: row.Nome ?? '',
-      Admissao: row['Admissão'] ?? '',
-      CPF: row.CPF ?? '',
-      Cargo: row.Cargo ?? '',
-      Local: row.Local ?? '',
-      ESCOLA: row.ESCOLA ?? '',
-      ['Horas Mes']: row.Horas_Mes != null ? String(row.Horas_Mes) : '',
-      ['Horas Semana']: row.Horas_Semana != null ? String(row.Horas_Semana) : '',
-
-      // Novos campos
-      tempo_casa_mes: row.tempo_casa_mes != null ? String(row.tempo_casa_mes) : '',
-      total_carga_horaria: row.total_carga_horaria != null ? String(row.total_carga_horaria) : '',
-      horas_faltas_injustificadas:
-        row.horas_faltas_injustificadas != null ? String(row.horas_faltas_injustificadas) : '',
-      porcentagem_horas_faltas_injustificadas:
-        row.porcentagem_horas_faltas_injustificadas ?? '',
-    }));
-
-    setProfessores(mapped);
-  } catch (err: any) {
-    console.error(err);
-    toast({
-      title: 'Erro ao carregar professores',
-      description: err.message || 'Não foi possível buscar os professores da unidade.',
-      variant: 'destructive',
-    });
-    setProfessores([]);
-  } finally {
-    setLoadingProfessores(false);
-  }
-};
-
-
+  };
 
   const handleUnidadeChange = (unidade: string) => {
     setSelectedUnidade(unidade);
@@ -205,15 +198,16 @@ const fetchProfessoresByUnidade = async (unidade: string) => {
       return;
     }
 
+    // Correção de validação
     if (
-      !formData.observacoes_sala_aula ||
-      !formData.feedback === undefined ||
-      !formData.feedback_evolucao ||
-      !formData.planejamento_org ||
-      !formData.dominio_conteudo ||
-      !formData.gestao_aprendizagem ||
-      !formData.comunicacao_rel ||
-      !formData.postura_prof
+      formData.observacoes_sala_aula === undefined ||
+      formData.feedback === undefined ||
+      formData.feedback_evolucao === undefined ||
+      formData.planejamento_org === undefined ||
+      formData.dominio_conteudo === undefined ||
+      formData.gestao_aprendizagem === undefined ||
+      formData.comunicacao_rel === undefined ||
+      formData.postura_prof === undefined
     ) {
       toast({
         title: 'Campos obrigatórios',
@@ -239,7 +233,7 @@ const fetchProfessoresByUnidade = async (unidade: string) => {
         horas_mes: selectedProfessor['Horas Mes'],
         horas_semana: selectedProfessor['Horas Semana'],
 
-        // NOVOS CAMPOS no payload
+        // Novos
         tempo_casa_mes: selectedProfessor.tempo_casa_mes ?? '',
         total_carga_horaria: selectedProfessor.total_carga_horaria ?? '',
         horas_faltas_injustificadas: selectedProfessor.horas_faltas_injustificadas ?? '',
@@ -257,15 +251,13 @@ const fetchProfessoresByUnidade = async (unidade: string) => {
         feedback: formData.feedback!,
       };
 
-      // ✅ Insert: inclui também as 4 novas colunas
-      console.log(feedbackData)
+      console.log(feedbackData);
       const { error: supabaseError } = await supabase
         .from('feedback_professores')
         .insert([{ user_id: '123456', ...feedbackData }]);
 
       if (supabaseError) throw supabaseError;
 
-      // ✅ Google Sheets (se sua planilha tiver colunas novas, elas serão preenchidas)
       try {
         await sendToGoogleSheets({
           user_id: 'Anônimo',
@@ -281,7 +273,14 @@ const fetchProfessoresByUnidade = async (unidade: string) => {
         description: 'O feedback foi salvo e enviado.',
       });
 
-      // Reset do formulário
+      // ⭐ exibir banner de confirmação
+      setSubmitted(true);
+      // opcional: rolar para o topo para ver a confirmação
+      if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
+      // ocultar automaticamente após 6s
+      setTimeout(() => setSubmitted(false), 6000);
+
+      // Reset
       setSelectedUnidade('');
       setSelectedProfessor(null);
       setProfessores([]);
@@ -312,14 +311,65 @@ const fetchProfessoresByUnidade = async (unidade: string) => {
       <header className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Rede APOGEU</h1>
-            <p className="text-sm text-gray-600">Avaliação Docente</p>
+            <h1 className="text-2xl font-bold text-gray-900">APG GOV</h1>
+            <p className="text-sm text-gray-600">Acompanhamento Docente</p>
           </div>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         <form onSubmit={handleSubmit} className="space-y-8">
+
+          {/* ⭐ Banner de confirmação persistente/temporário */}
+          {submitted && (
+            <div
+              role="status"
+              aria-live="polite"
+              className="flex items-start gap-3 rounded-md border border-green-200 bg-green-50 p-4 text-green-900 shadow-sm"
+            >
+              <CheckCircle2 className="mt-0.5 h-5 w-5 flex-none" aria-hidden="true" />
+              <div>
+                <p className="font-medium">Sua resposta foi enviada.</p>
+                <p className="text-sm text-green-800">
+                  Obrigado por contribuir com o acompanhamento docente do APGGov.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* ===== Card Inicial (Apresentação) ===== */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Apresentação</CardTitle>
+              <CardDescription>
+                Leia atentamente antes de iniciar o preenchimento da avaliação.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 leading-relaxed text-gray-800">
+              <p>
+                <strong>A Pesquisa de Acompanhamento Docente</strong> tem como finalidade analisar, valorizar e
+                aprimorar a prática pedagógica dos(as) professores(as) contratados(as) pelo APGGov.
+              </p>
+              <p>
+                Além disso, queremos colher as suas observações (enquanto Diretor/a Pedagógico/a) sobre o ano de 2025.
+                A partir da sua perspectiva, poderemos planejar o ano de 2026 com a máxima qualidade.
+              </p>
+              <p>
+                <strong>Ressaltamos</strong> que esta pesquisa deve ser preenchida exclusivamente pelo(a) Diretor(a)
+                Pedagógico do Colégio.
+              </p>
+              <p>
+                Para cada professor(a), avalie os critérios utilizando a escala e as descrições fornecidas.
+                As descrições ajudam a calibrar a avaliação, garantindo uma análise consistente e baseada em
+                evidências observáveis.
+              </p>
+              <p>
+                Muito obrigado pela sua participação. Ela é muito valiosa para o APGGov.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* ===== Etapa 1 ===== */}
           <Card>
             <CardHeader>
               <CardTitle>Etapa 1 - Seleção da Unidade e Professor</CardTitle>
@@ -410,7 +460,7 @@ const fetchProfessoresByUnidade = async (unidade: string) => {
                     <Input value={selectedProfessor['Horas Semana']} readOnly />
                   </div>
 
-                  {/* NOVOS CAMPOS - somente leitura */}
+                  {/* NOVOS CAMPOS */}
                   <div className="space-y-2">
                     <Label>Tempo de Casa (meses)</Label>
                     <Input value={selectedProfessor.tempo_casa_mes ?? ''} readOnly />
@@ -437,7 +487,7 @@ const fetchProfessoresByUnidade = async (unidade: string) => {
             </CardContent>
           </Card>
 
-          {/* AVALIAÇÃO */}
+          {/* ===== Etapa 2 - Avaliação ===== */}
           {selectedProfessor && (
             <>
               <Card>
