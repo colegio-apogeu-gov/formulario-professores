@@ -339,15 +339,9 @@ export default function FormPage() {
 
           {/* ===== Card Inicial (Apresentação) ===== */}
           <Card>
-            <CardHeader>
-              <CardTitle>Apresentação</CardTitle>
-              <CardDescription>
-                Leia atentamente antes de iniciar o preenchimento da avaliação.
-              </CardDescription>
-            </CardHeader>
             <CardContent className="space-y-4 leading-relaxed text-gray-800">
               <p>
-                <strong>A Pesquisa de Acompanhamento Docente</strong> tem como finalidade analisar, valorizar e
+                A Pesquisa de Acompanhamento Docente tem como finalidade analisar, valorizar e
                 aprimorar a prática pedagógica dos(as) professores(as) contratados(as) pelo APGGov.
               </p>
               <p>
@@ -355,7 +349,7 @@ export default function FormPage() {
                 A partir da sua perspectiva, poderemos planejar o ano de 2026 com a máxima qualidade.
               </p>
               <p>
-                <strong>Ressaltamos</strong> que esta pesquisa deve ser preenchida exclusivamente pelo(a) Diretor(a)
+                Ressaltamos que esta pesquisa deve ser preenchida exclusivamente pelo(a) Diretor(a)
                 Pedagógico do Colégio.
               </p>
               <p>
