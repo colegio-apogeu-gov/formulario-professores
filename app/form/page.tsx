@@ -32,6 +32,8 @@ type RawProfessor = {
   total_carga_horaria: number | null;
   horas_faltas_injustificadas: number | null;
   porcentagem_horas_faltas_injustificadas: string | null;
+  horas_faltas_justificadas: number | null;
+  porcentagem_horas_faltas_justificadas: string | null;
 };
 
 type Professor = BaseProfessor & {
@@ -39,6 +41,8 @@ type Professor = BaseProfessor & {
   total_carga_horaria?: string;
   horas_faltas_injustificadas?: string;
   porcentagem_horas_faltas_injustificadas?: string;
+  horas_faltas_justificadas?: string;
+  porcentagem_horas_faltas_justificadas?: string;
 };
 
 type FeedbackFormData = BaseFeedbackFormData & {
@@ -46,6 +50,8 @@ type FeedbackFormData = BaseFeedbackFormData & {
   total_carga_horaria?: string;
   horas_faltas_injustificadas?: string;
   porcentagem_horas_faltas_injustificadas?: string;
+  horas_faltas_justificadas?: string;
+  porcentagem_horas_faltas_justificadas?: string;
 };
 
 const escapeILike = (s: string) =>
@@ -117,7 +123,7 @@ export default function FormPage() {
 
       const baseSelect =
         'REGIONAL, Cadastro, Nome, "Admissão", CPF, Cargo, Local, ESCOLA, "Horas_Mes", "Horas_Semana", ' +
-        'tempo_casa_mes, total_carga_horaria, horas_faltas_injustificadas, porcentagem_horas_faltas_injustificadas';
+        'tempo_casa_mes, total_carga_horaria, horas_faltas_injustificadas, porcentagem_horas_faltas_injustificadas, horas_faltas_justificadas, porcentagem_horas_faltas_justificadas';
 
       let { data, error } = await supabase
         .from('dados_professores')
@@ -159,6 +165,10 @@ export default function FormPage() {
           row.horas_faltas_injustificadas != null ? String(row.horas_faltas_injustificadas) : '',
         porcentagem_horas_faltas_injustificadas:
           row.porcentagem_horas_faltas_injustificadas ?? '',
+        horas_faltas_justificadas:
+          row.horas_faltas_justificadas != null ? String(row.horas_faltas_justificadas) : '',
+        porcentagem_horas_faltas_justificadas:
+          row.porcentagem_horas_faltas_justificadas ?? '',
       }));
 
       setProfessores(mapped);
@@ -239,6 +249,9 @@ export default function FormPage() {
         horas_faltas_injustificadas: selectedProfessor.horas_faltas_injustificadas ?? '',
         porcentagem_horas_faltas_injustificadas:
           selectedProfessor.porcentagem_horas_faltas_injustificadas ?? '',
+        horas_faltas_justificadas: selectedProfessor.horas_faltas_justificadas ?? '',
+        porcentagem_horas_faltas_justificadas:
+          selectedProfessor.porcentagem_horas_faltas_justificadas ?? '',
 
         observacoes_sala_aula: formData.observacoes_sala_aula!,
         feedback_evolucao: formData.feedback_evolucao!,
@@ -475,6 +488,14 @@ export default function FormPage() {
                   <div className="space-y-2">
                     <Label>% Horas Faltas Injustificadas</Label>
                     <Input value={selectedProfessor.porcentagem_horas_faltas_injustificadas ?? ''} readOnly />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Horas de Faltas justificadas</Label>
+                    <Input value={selectedProfessor.horas_faltas_justificadas ?? ''} readOnly />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>% Horas Faltas justificadas</Label>
+                    <Input value={selectedProfessor.porcentagem_horas_faltas_justificadas ?? ''} readOnly />
                   </div>
                 </div>
               )}

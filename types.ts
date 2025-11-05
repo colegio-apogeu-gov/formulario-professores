@@ -17,6 +17,8 @@ export interface Professor {
   total_carga_horaria?: string;                    // vindo de int8
   horas_faltas_injustificadas?: string;            // vindo de int4
   porcentagem_horas_faltas_injustificadas?: string; // vindo de string no banco
+  horas_faltas_justificadas?: string;            // vindo de int4
+  porcentagem_horas_faltas_justificadas?: string; // vindo de string no banco
 }
 
 export interface FeedbackFormData {
@@ -37,6 +39,8 @@ export interface FeedbackFormData {
   total_carga_horaria?: string;
   horas_faltas_injustificadas?: string;
   porcentagem_horas_faltas_injustificadas?: string;
+  horas_faltas_justificadas?: string;
+  porcentagem_horas_faltas_justificadas?: string;
 
   observacoes_sala_aula: number;
   feedback_evolucao: number;

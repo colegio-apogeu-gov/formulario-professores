@@ -89,6 +89,8 @@ export async function POST(req: Request) {
       data.total_carga_horaria ?? '',
       data.horas_faltas_injustificadas ?? '',
       data.porcentagem_horas_faltas_injustificadas ?? '',
+      data.horas_faltas_justificadas ?? '',
+      data.porcentagem_horas_faltas_justificadas ?? '',
 
       // Avaliações
       data.postura_prof ?? '',
